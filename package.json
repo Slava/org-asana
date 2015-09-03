@@ -13,6 +13,7 @@
     "fs-extra": "^0.23.1",
     "fs-promise": "^0.3.1",
     "minimist": "^1.2.0",
+    "object-assign": "^4.0.1",
     "org": "^0.2.0"
   },
   "devDependencies": {
