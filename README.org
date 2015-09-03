@@ -1,0 +1,20 @@
+* Org-Asana
+Hopefully a project that will work for my cases.
+
+** MVP
+*** TODO Sync general structure of the tree and the sub-headings
+*** TODO Sync paragraphs and attached info
+*** TODO Parse out the `:project:` tag to indicate a traverse start
+*** TODO Parse out `TODO` vs `DONE` vs N/A
+*** TODO Parse out the `DEADLINE` and `SCHEDULE`
+
+** More
+*** Smart use of Asana sub-headings
+*** Write back the Asana IDs to the tasks to minimize recreation of tasks
+This can be done by doing two things:
+
+- configuring Emacs to hide the PROPERTIES drawer http://stackoverflow.com/questions/17478260/completely-hide-the-properties-drawer-in-org-mode
+- writing back to the file the IDs and other metadata
+*** Sync over Dropbox
+*** Two-way sync, from Asana description fields to Org file
+*** Some conflict resolution strategy

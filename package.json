@@ -1,0 +1,21 @@
+{
+  "name": "org-asana",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bluebird": "^2.9.34",
+    "fs-extra": "^0.23.1",
+    "fs-promise": "^0.3.1",
+    "minimist": "^1.2.0",
+    "org": "^0.2.0"
+  },
+  "devDependencies": {
+    "babel": "^5.8.21"
+  }
+}

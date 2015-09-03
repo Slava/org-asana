@@ -1,0 +1,7 @@
+# -*- mode: gitignore; -*-
+*~
+\#*\#
+.\#*
+
+node_modules
+
