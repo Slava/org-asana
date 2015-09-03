@@ -72,6 +72,15 @@ function parseHeadingText(text) {
     attrs.todo = null;
   }
 
+  const tags = [];
+  parsedText = text.replace(/:[^:]+:/g, function (t) {
+    tags.push(t.slice(1, t.length - 1));
+    return '';
+  });
+  attrs.tags = tags;
+
+  parsedText = parsedText.trim();
+
   return {attrs, parsedText};
 }
 
