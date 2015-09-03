@@ -6,6 +6,7 @@ function pad(num) {
   return new Array(num + 1).join(' ');
 }
 
+// expects `this` to be the current mutable tree
 function walk(node, level = 1) {
   console.log(`${pad(level * 2)}${node.type}(${node.level || '-'}) - ${node.value || 'N/A'}`);
   node.children.forEach(n => walk(n, level + 1));
