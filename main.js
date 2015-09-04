@@ -13,7 +13,12 @@ class Node {
   }
 
   addHeadingNode(text) {
-    const node = new HeadingNode({text, parent: this});
+    const node = new HeadingNode({
+      text,
+      parent: this,
+      level: (this.level || 0) + 1
+    });
+
     this.children.push(node);
   }
 
@@ -22,16 +27,18 @@ class Node {
   }
 
   prettyPrint(level = 0) {
-    console.log(`${pad(level)} #${this.type} ${this.text} ${JSON.stringify(this.attrs)}`);
+    console.log(`${pad(level * 2)} #${this.type} ${this.text} ${JSON.stringify(this.attrs)}`);
     this.children.forEach(child => child.prettyPrint(level + 1));
   }
 }
 
 class HeadingNode extends Node {
-  constructor({text, parent}) {
+  constructor({text, parent, level}) {
     const type = 'heading';
     const {attrs, parsedText} = parseHeadingText(text);
     super({text: parsedText, type, parent, attrs});
+
+    this.level = level || 1;
   }
 
   addAttrs(attrs) {
@@ -125,7 +132,6 @@ function pad(num) {
 // expects `this` to be the current mutable tree
 function walk(node, level = 1) {
   //console.log(`${pad(level * 2)}${node.type}(${node.level || '-'}) - ${node.value || 'N/A'}`);
-  const heading = this.lastChild();
   if (node.type === 'header') {
     const newHeading = this.addHeadingNode(node.children[0].children[0].value);
     node.children.slice(1).forEach(child => walk.call(newHeading, child, level + 1));
@@ -134,9 +140,9 @@ function walk(node, level = 1) {
       node.children[0].value : node.children[0].children[0].value;
     const {parsedText, attrs} = parseTextHeadingExt(text);
     if (parsedText) {
-      heading.addTextNode(text);
+      this.addTextNode(parsedText);
     }
-    heading.addAttrs(attrs);
+    this.addAttrs(attrs);
   }
 }
 
@@ -150,7 +156,26 @@ async function main (filepath) {
       type: 'root'
     });
 
-    orgDocument.nodes.forEach(n => walk.call(ast, n));
+    // because of the way 'org' parses the org-mode structure, we need
+    // to maintain a stack and recreate the tree structure of the
+    // document
+    const headingsStack = [];
+    headingsStack.push(ast);
+    orgDocument.nodes.forEach(n => {
+      let node = headingsStack[headingsStack.length - 1];
+      if (n.level) {
+        while (node.level && node.level >= n.level) {
+          headingsStack.pop();
+          node = headingsStack[headingsStack.length - 1];
+        }
+      }
+
+      walk.call(node, n);
+
+      if (n.level) {
+        headingsStack.push(node.lastChild());
+      }
+    });
     ast.prettyPrint();
   } catch (err) {
     console.log('main async code threw an error:');
