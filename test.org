@@ -10,12 +10,8 @@ DEADLINE: <2015-09-11 Fri>
 SCHEDULED: <2015-09-11 Fri>
 Some other text.
 
-Some more info
+Some more info [[https://google.com][somelink]]
 
 And some more:
-
-- hey
-- by
-- the
-- wat
+** 
 * the top #2

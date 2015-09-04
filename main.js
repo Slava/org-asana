@@ -2,6 +2,7 @@ import fs from 'fs-promise';
 import minimist from 'minimist';
 import org from 'org';
 import assign from 'object-assign';
+import asana from 'asana';
 
 class Node {
   constructor({type, parent, text, attrs}) {
@@ -150,40 +151,69 @@ function walk(node, level = 1) {
       this.addTextNode(parsedText);
     }
     this.addAttrs(attrs);
+  } else {
+    console.log(node.children[2].toString())
+    throw new Error('unsupported type of node ' + node.type);
   }
 }
 
-async function main (filepath) {
+function parseOrg(orgCode) {
+  const parser = new org.Parser();
+  const orgDocument = parser.parse(orgCode);
+
+  const ast = new Node({
+    type: 'root'
+  });
+
+  // because of the way 'org' parses the org-mode structure, we need
+  // to maintain a stack and recreate the tree structure of the
+  // document
+  const headingsStack = [];
+  headingsStack.push(ast);
+  orgDocument.nodes.forEach(n => {
+    let node = headingsStack[headingsStack.length - 1];
+    if (n.level) {
+      while (node.level && node.level >= n.level) {
+        headingsStack.pop();
+        node = headingsStack[headingsStack.length - 1];
+      }
+    }
+
+    walk.call(node, n);
+
+    if (n.level) {
+      headingsStack.push(node.lastChild());
+    }
+  });
+
+  return ast;
+}
+
+async function main (filepath, options) {
   try {
-    const parser = new org.Parser();
+    const settings = JSON.parse(await fs.readFile(options.settings, 'utf8'));
     const orgCode = await fs.readFile(filepath, 'utf8');
-    const orgDocument = parser.parse(orgCode);
 
-    const ast = new Node({
-      type: 'root'
-    });
+    const ast = parseOrg(orgCode);
 
-    // because of the way 'org' parses the org-mode structure, we need
-    // to maintain a stack and recreate the tree structure of the
-    // document
-    const headingsStack = [];
-    headingsStack.push(ast);
-    orgDocument.nodes.forEach(n => {
-      let node = headingsStack[headingsStack.length - 1];
-      if (n.level) {
-        while (node.level && node.level >= n.level) {
-          headingsStack.pop();
-          node = headingsStack[headingsStack.length - 1];
-        }
-      }
-
-      walk.call(node, n);
-
-      if (n.level) {
-        headingsStack.push(node.lastChild());
-      }
-    });
     ast.prettyPrint();
+
+    const asanaClient = asana.Client.create();
+    asanaClient.useOauth({
+      credentials: settings.key
+    });
+
+    const me = await asanaClient.users.me();
+    const projectsCollection = await asanaClient.projects.findByWorkspace(+settings.workspace);
+    const projects = await projectsCollection.fetch(100);
+
+    // nuke everything
+    projects.forEach((project) => {
+      asanaClient.projects.delete(project.id);
+    });
+
+    // create new projects
+    ;
   } catch (err) {
     console.log('main async code threw an error:');
     console.log(err.stack);
@@ -191,4 +221,4 @@ async function main (filepath) {
 }
 
 const argv = minimist(process.argv.slice(2));
-main(argv._[0]);
+main(argv._[0], argv);

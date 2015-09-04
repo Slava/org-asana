@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "asana": "^0.9.6",
     "bluebird": "^2.9.34",
     "fs-extra": "^0.23.1",
     "fs-promise": "^0.3.1",
