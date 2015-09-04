@@ -129,15 +129,22 @@ function pad(num) {
   return new Array(num + 1).join(' ');
 }
 
+function getTextValue(node) {
+  while (node && node.type !== 'text') {
+    node = node.children[0];
+  }
+
+  return node.value;
+}
+
 // expects `this` to be the current mutable tree
 function walk(node, level = 1) {
   //console.log(`${pad(level * 2)}${node.type}(${node.level || '-'}) - ${node.value || 'N/A'}`);
   if (node.type === 'header') {
-    const newHeading = this.addHeadingNode(node.children[0].children[0].value);
+    const newHeading = this.addHeadingNode(getTextValue(node));
     node.children.slice(1).forEach(child => walk.call(newHeading, child, level + 1));
   } else if (node.type === 'inlineContainer' || node.type === 'paragraph') {
-    const text = node.type === 'inlineContainer' ?
-      node.children[0].value : node.children[0].children[0].value;
+    const text = getTextValue(node);
     const {parsedText, attrs} = parseTextHeadingExt(text);
     if (parsedText) {
       this.addTextNode(parsedText);
