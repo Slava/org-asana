@@ -1,8 +1,8 @@
 import fs from 'fs-promise';
 import minimist from 'minimist';
-import org from 'org';
 import assign from 'object-assign';
 import asana from 'asana';
+import lexer from './lexer';
 
 class Node {
   constructor({type, parent, text, attrs}) {
@@ -131,10 +131,6 @@ function pad(num) {
 }
 
 function getTextValue(node) {
-  while (node && node.type !== 'text') {
-    node = node.children[0];
-  }
-
   return node.value;
 }
 
@@ -143,8 +139,7 @@ function walk(node, level = 1) {
   //console.log(`${pad(level * 2)}${node.type}(${node.level || '-'}) - ${node.value || 'N/A'}`);
   if (node.type === 'header') {
     const newHeading = this.addHeadingNode(getTextValue(node));
-    node.children.slice(1).forEach(child => walk.call(newHeading, child, level + 1));
-  } else if (node.type === 'inlineContainer' || node.type === 'paragraph') {
+  } else if (node.type === 'paragraph') {
     const text = getTextValue(node);
     const {parsedText, attrs} = parseTextHeadingExt(text);
     if (parsedText) {
@@ -152,14 +147,12 @@ function walk(node, level = 1) {
     }
     this.addAttrs(attrs);
   } else {
-    console.log(node.children[2].toString())
     throw new Error('unsupported type of node ' + node.type);
   }
 }
 
 function parseOrg(orgCode) {
-  const parser = new org.Parser();
-  const orgDocument = parser.parse(orgCode);
+  const lx = new lexer(orgCode);
 
   const ast = new Node({
     type: 'root'
@@ -170,7 +163,7 @@ function parseOrg(orgCode) {
   // document
   const headingsStack = [];
   headingsStack.push(ast);
-  orgDocument.nodes.forEach(n => {
+  lx.getLexemes().forEach(n => {
     let node = headingsStack[headingsStack.length - 1];
     if (n.level) {
       while (node.level && node.level >= n.level) {

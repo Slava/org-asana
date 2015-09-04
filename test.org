@@ -13,5 +13,10 @@ Some other text.
 Some more info [[https://google.com][somelink]]
 
 And some more:
-** 
+
+- [ ] a
+- [ ] b
+- c
+- [x] d
+** bla
 * the top #2
