@@ -92,25 +92,39 @@ function parseHeadingText(text) {
 function parseTextHeadingExt(text) {
   // parses the metadata in the text related to the subheading
   // XXX right now has an assumption that the text either contains
-  // only one attr or only text.
-  if (text.match(/^DEADLINE: /)) {
-    const deadline = parseDate(text.match(/^DEADLINE: (.*)$/)[1]);
+  // only attrs or only text.
+  const regexps = [
+    [/^DEADLINE: <([^>]+)>\s*/, 'deadline'],
+    [/^SCHEDULED: <([^>]+)>\s*/, 'scheduled'],
+    [/^CLOSED: \[([^\]]+)]\s*/, 'closed'],
+  ];
 
+  const attrs = {};
+
+  let lastMatch;
+  do {
+    lastMatch = null;
+    regexps.forEach((tuple) => {
+      const [r, tag] = tuple;
+      if (text.match(r)) {
+        const value = parseDate(text.match(r)[1]);
+        text = text.replace(r, '');
+        lastMatch = r;
+
+        attrs[tag] = value;
+      }
+    });
+  } while(lastMatch);
+
+  // parsed some attrs
+  if (Object.keys(attrs).length > 0) {
     return {
-      parsedText: null,
-      attrs: {deadline}
+      attrs,
+      parsedText: null
     };
   }
 
-  if (text.match(/^SCHEDULED: /)) {
-    const scheduled = parseDate(text.match(/^SCHEDULED: (.*)$/)[1]);
-
-    return {
-      parsedText: null,
-      attrs: {scheduled}
-    };
-  }
-
+  // didn't really parse much
   return {
     parsedText: text,
     attrs: {}
@@ -119,7 +133,7 @@ function parseTextHeadingExt(text) {
 
 function parseDate(text) {
   const [, dateStr, , timeStr] = text.match(
-      /^\s*<([0-9]+-[0-9]+-[0-9]+)\s*([a-zA-Z]+)(\s*(.+:.+))?\>\s*$/);
+      /^\s*([0-9]+-[0-9]+-[0-9]+)\s*([a-zA-Z]+)(\s*(.+:.+))?\s*$/);
   return new Date(`${dateStr} ${timeStr || ''}`);
 }
 
@@ -177,4 +191,21 @@ export default function parseOrg(orgCode) {
   });
 
   return ast;
+}
+
+class Visitor {
+  constructor(ast) {
+    this.ast = ast;
+  }
+
+  startVisitor() {
+    return this.visitRoot(this.ast);
+  }
+
+  visitRoot(root) {
+    ;
+  }
+  visitHeading() {
+  }
+  visitText() {}
 }
