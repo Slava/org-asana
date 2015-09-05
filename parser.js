@@ -193,19 +193,48 @@ export default function parseOrg(orgCode) {
   return ast;
 }
 
-class Visitor {
+export class Visitor {
   constructor(ast) {
     this.ast = ast;
   }
 
   startVisitor() {
-    return this.visitRoot(this.ast);
+    return this.visitRoot(
+      this.ast,
+      this._subvisit.bind(this, this.ast));
   }
 
-  visitRoot(root) {
-    ;
+  // routines for subvisits
+  _subvisit(ast) {
+    const rets = ast.children.map(child => {
+      if (child.type === 'heading' || child.type === 'text') {
+        return this['visit' + capitalizeFirstLetter(child.type)](
+          child,
+          this._subvisit.bind(this, child));
+      } else {
+        throw new Error('unexpected node type: ' + child.type);
+      }
+    });
+
+    return this.combine(rets);
   }
-  visitHeading() {
+
+  // overridables
+  combine(rets) {
+    return rets;
   }
-  visitText() {}
+
+  visitRoot(root, next) {
+    return next();
+  }
+  visitHeading(heading, next) {
+    return next();
+  }
+  visitText(text, next) {
+    return next();
+  }
+}
+
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
 }

@@ -1,7 +1,7 @@
 * This is the top #1 :project:
 And some text for top #1
 ** subheading #2
-** subheading #2a
+** subheading #2a :project:
 ** TODO a todo task
 *** 3rd level
 ***** TODO 5th level
@@ -22,3 +22,6 @@ And some more:
 - [x] d
 ** bla
 * the top #2
+** subhead that is a project :project:
+*** yay
+** something else

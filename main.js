@@ -1,7 +1,25 @@
 import fs from 'fs-promise';
 import asana from 'asana';
 import minimist from 'minimist';
-import parseOrg from './parser';
+import parseOrg, {Visitor} from './parser';
+
+// walks through the tree and returns trees with :project: tag
+// as soon as a tagged tree is found, the traverse terminates
+class ProjectNodesCollector extends Visitor {
+  visitHeading(heading, next) {
+    if (heading.attrs.tags.indexOf('project') !== -1)
+      return [heading];
+    return next();
+  }
+  visitText() {
+    return [];
+  }
+  combine(rets) {
+    const res = [];
+    rets.forEach(ret => res.push(...ret));
+    return res;
+  }
+}
 
 async function main (filepath, options) {
   try {
@@ -27,7 +45,10 @@ async function main (filepath, options) {
     });
 
     // create new projects
-    ;
+    const projectNodes =
+          new ProjectNodesCollector(ast).startVisitor();
+
+    console.log(projectNodes);
   } catch (err) {
     console.log('main async code threw an error:');
     console.log(err.stack);
